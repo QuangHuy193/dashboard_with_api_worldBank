@@ -1,0 +1,27 @@
+.dashboard-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.dashboard-sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  bottom: 0;
+  width: 200px;
+  z-index: 99;
+  background: "#fff";
+  box-shadow: "2px 0 8px rgba(0,0,0,0.1)";
+}
+
+.dashboard-content {
+  margin-top: 64px;
+  margin-left: 200px;
+  padding: 20px;
+  background: "#f5f5f5";
+  overflow: "auto";
+  height: "calc(100vh - 64px)";
+}
