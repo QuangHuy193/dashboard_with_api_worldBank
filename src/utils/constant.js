@@ -39,13 +39,14 @@ export const sidebarMenuItems = [
     icon: <PieChartOutlined />,
     label: "Dashboard",
     component: DashboardPage,
-    withLoading: true
+    isLoading: true
   },
   {
     key: "population",
     icon: <TeamOutlined />,
     label: "Dân số",
     component: PopulationPage,
+    isLoading: true
   },
   {
     key: "economy",
@@ -80,7 +81,7 @@ export const sidebarMenuItems = [
 ];
 
 // các chỉ số tổng quát của trang dashboard
-export const statsConfig = [
+export const statsConfigInDashboard = [
   { title: "Dân số", code: "SP.POP.TOTL", icon: <FaUsers /> },
   { title: "GDP (USD)", code: "NY.GDP.MKTP.CD", icon: <FaDollarSign /> },
   {
@@ -136,13 +137,17 @@ export const statsConfig = [
   },
 ];
 
-const currentYear = new Date().getFullYear();
+export const currentYear = new Date().getFullYear();
 export const years = Array.from(
   { length: currentYear - 1960 + 1 },
   (_, i) => 1960 + i
 );
 
-export let countries = [];
-export async function initCountries() {
-  countries = await fetchAllCountries();
+let countriesPromise;
+export function fetchCountriesOnce() {
+  if (!countriesPromise) {
+    countriesPromise = fetchAllCountries();
+  }
+  return countriesPromise;
 }
+

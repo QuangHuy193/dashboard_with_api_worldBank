@@ -1,41 +1,80 @@
-import { useEffect, useState } from "react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+import { useEffect } from "react";
 import { Line } from "react-chartjs-2";
-import { fetchWorldBankData } from "../../../services/api/worldbankAPI";
+import { fetchWorldBankDataRange } from "../../../services/api/worldbankAPI";
 import { Card } from "antd";
+import { fotmatNumber } from "../../../utils/function";
 
-export default function LineChart({ indicator, startYear, endYear, title, color = "blue" }) {
-  const [chartData, setChartData] = useState({});
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
+export default function LineChart({
+  setIsLoading,
+  chartData,
+  setChartData,
+  indicator,
+  countryCode,
+  startYear,
+  endYear,
+  chartTitle,
+  datasetLabel,
+  color = "blue",
+}) {
   useEffect(() => {
     async function loadData() {
-      const years = [];
-      const values = [];
-      for (let year = startYear; year <= endYear; year++) {
-        const data = await fetchWorldBankData(indicator, year);
-        const world = data.find(d => d.country.id === "WLD");
-        if (world) {
-          years.push(year);
-          values.push(world.value);
-        }
-      }
+      setIsLoading(true);
+      const results = await fetchWorldBankDataRange(
+        countryCode,
+        indicator,
+        startYear,
+        endYear
+      );
+      setIsLoading(false);
+      const years = results.map((item) => item.year);
+      const values = results.map((item) =>        
+        item.value !== "N/A" ? Number(item.value.replace(/,/g, "")) : null
+      );
+
       setChartData({
         labels: years,
         datasets: [
           {
-            label: title,
+            label: datasetLabel,
             data: values,
             borderColor: color,
-            fill: false
-          }
-        ]
+            fill: false,
+          },
+        ],
       });
     }
+
     loadData();
-  }, [indicator, startYear, endYear, title, color]);
+  }, [indicator, startYear, endYear, countryCode, datasetLabel, color]);
 
   return (
-    <Card title={title}>
-      <Line data={chartData} />
+    <Card title={chartTitle}>
+      {chartData.datasets.length > 0 ? (
+        <Line data={chartData} />
+      ) : (
+        <p>Đang tải dữ liệu...</p>
+      )}
     </Card>
   );
 }

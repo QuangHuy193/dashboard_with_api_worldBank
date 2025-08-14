@@ -19,7 +19,7 @@ export default function Dashboard() {
     if (!menu) return <h1>404 - Không tìm thấy trang</h1>;
 
     const Component = menu.component;
-    if (menu.withLoading) {
+    if (menu.isLoading) {
       return <Component setIsLoading={setIsLoading} />;
     }
 

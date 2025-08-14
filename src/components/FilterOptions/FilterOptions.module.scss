@@ -1,0 +1,12 @@
+.option {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 5px;
+  margin-bottom: 10px;
+
+  label {
+    margin-right: 10px;
+    font-size: 1rem;
+  }
+}
