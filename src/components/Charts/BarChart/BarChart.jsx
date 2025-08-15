@@ -1,31 +1,60 @@
-import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
-import { fetchWorldBankData } from "../../../services/api/worldbankAPI";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { useEffect } from "react";
+import { fetchWorldBankDataTop } from "../../../services/api/worldbankAPI";
 import { Card } from "antd";
 
-export default function BarChart({ indicator, year, title, top = 10, unit = "" }) {
-  const [chartData, setChartData] = useState({});
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
+export default function BarChart({
+  setIsLoading,
+  chartData,
+  setChartData,
+  indicator,
+  year,
+  title,
+  type, //top or bot
+  number = 10,
+  datasetLabel,
+  unit = "",
+}) {
   useEffect(() => {
     async function loadData() {
-      const data = await fetchWorldBankData(indicator, year);
-      const sorted = data.sort((a, b) => b.value - a.value).slice(0, top);
+      setIsLoading(true);
+      const data = await fetchWorldBankDataTop(indicator, year,type, number);
+      setIsLoading(false);
       setChartData({
-        labels: sorted.map(d => d.country.value),
+        labels: data.map((d) => d.country),
         datasets: [
           {
-            label: title,
-            data: sorted.map(d => d.value),
-            backgroundColor: "#1890ff"
-          }
-        ]
+            label: datasetLabel,
+            data: data.map((d) => d.value),
+            backgroundColor: "#1890ff",
+          },
+        ],
       });
     }
     loadData();
-  }, [indicator, year, title, top]);
+  }, [indicator, year, title, number, type]);
 
   return (
-    <Card title={`${title} (${year})`}>
+    <Card>
+      <div className="chart-title">{title}</div>
       <Bar data={chartData} />
     </Card>
   );

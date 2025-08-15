@@ -4,46 +4,19 @@ import { currentYear } from "../../utils/constant";
 import FilterOptions from "../../components/FilterOptions/FilterOptions";
 import classNames from "classnames/bind";
 import styles from "./PopulationPage.module.scss";
-import StatCard from "../../components/Cards/StatCard/StatCard";
-import { fotmatNumber } from "../../utils/function";
+import BarChart from "../../components/Charts/BarChart/BarChart";
 
 const cx = classNames.bind(styles);
 
 function PopulationPage({ setIsLoading }) {
   const [startYear, setStartYear] = useState(currentYear - 20);
   const [endYear, setEndYear] = useState(currentYear);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedCountry, selectedSetCountry] = useState("WLD");
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
-
-  const populationData = chartData.datasets?.[0]?.data || [];
-  const years = chartData.labels || [];
-  
-  // Tổng dân số (nếu muốn cộng tất cả năm lại)
-  const totalPopulation = populationData.reduce(
-    (sum, val) => sum + (val || 0),
-    0
-  );
-
-  // Tỉ lệ tăng trưởng (%) giữa các năm
-  const growthRates = populationData.map((val, index, arr) => {
-    if (index === 0) return null; // không có năm trước để so sánh
-    const prev = arr[index - 1];
-    if (!val || !prev) return null;
-    return ((val - prev) / prev) * 100;
-  });
-
-  // Tỉ lệ tăng trưởng tổng thể từ năm đầu đến năm cuối
-  const startPopulation = populationData[0] || 0;
-  const endPopulation = populationData[populationData.length - 1] || 0;
-  const totalGrowthRate = startPopulation
-    ? ((endPopulation - startPopulation) / startPopulation) * 100
-    : 0;
-
-  // Tăng trưởng trung bình hàng năm (AAGR)
-  const numberOfYears = populationData.length - 1;
-  const averageAnnualGrowthRate = numberOfYears
-    ? totalGrowthRate / numberOfYears
-    : 0;
+  const [chartData1, setChartData1] = useState({ labels: [], datasets: [] });
+  const [chartData2, setChartData2] = useState({ labels: [], datasets: [] });
+  const [selectedTop, setSelectedTop] = useState(5);
+  const [selectedType, setSelectedType] = useState(1);
 
   return (
     <div>
@@ -56,35 +29,39 @@ function PopulationPage({ setIsLoading }) {
         selectedCountry={selectedCountry}
         onCountryChange={selectedSetCountry}
       />
+      {/* chart 1 */}
       <LineChart
         setIsLoading={setIsLoading}
-        chartData={chartData}
-        setChartData={setChartData}
+        chartData={chartData1}
+        setChartData={setChartData1}
         indicator="SP.POP.TOTL"
-        countryCode={selectedCountry} // thêm countryCode
+        countryCode={selectedCountry}
         startYear={startYear}
         endYear={endYear}
-        chartTitle={
-          <div className={cx("chart-title")}>
-            {`Biểu đồ tăng trưởng dân số của ${selectedCountry} trong năm ${startYear} - ${endYear}`}
-          </div>
-        }
+        chartTitle={`Biểu đồ tăng trưởng dân số của ${selectedCountry} trong năm ${startYear} - ${endYear}`}
         datasetLabel="Dân số"
         color="green"
       />
-
-      <StatCard title={"Tổng dân số"} value={fotmatNumber(totalPopulation)} />
-      <StatCard
-        title={"Tỉ lệ tăng trưởng theo năm"}
-        value={fotmatNumber(growthRates)}
+      {/* chart 2 */}
+      <FilterOptions
+        yearMode="year"
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
+        selectedTop={selectedTop}
+        onTopChange={setSelectedTop}
+        selectedType={selectedType}
+        onTypeChange={setSelectedType}
       />
-      <StatCard
-        title={"Tỉ lệ tăng trưởng tổng thể (%)"}
-        value={fotmatNumber(totalGrowthRate)}
-      />
-      <StatCard
-        title={"totalGrowthRate"}
-        value={fotmatNumber(averageAnnualGrowthRate)}
+      <BarChart
+        setIsLoading={setIsLoading}
+        type={selectedType === 1 ? "top" : "bot"}
+        chartData={chartData2}
+        setChartData={setChartData2}
+        indicator="SP.POP.TOTL"
+        year={selectedYear}
+        number={selectedTop}
+        title={`Biểu đồ Top ${selectedTop} quốc gia có dân số cao nhất`}
+        datasetLabel="Dân số"
       />
     </div>
   );

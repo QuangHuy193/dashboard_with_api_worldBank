@@ -1,3 +1,5 @@
+import { validCountryISO3Codes } from "../../utils/constant";
+
 export const fetchWorldBankData = async (
   countryCode = "WLD",
   indicatorCode,
@@ -35,7 +37,10 @@ export const fetchWorldBankDataRange = async (
 
       results.push({
         year,
-        value: value !== undefined && value !== null ? value.toLocaleString("en-US") : "N/A",
+        value:
+          value !== undefined && value !== null
+            ? value.toLocaleString("en-US")
+            : "N/A",
       });
     } catch (error) {
       console.error(`Error fetching data for ${year}:`, error);
@@ -58,3 +63,53 @@ export async function fetchAllCountries() {
     name: c.name,
   }));
 }
+
+//
+export const fetchWorldBankDataTop = async (
+  indicatorCode,
+  year = "2025",
+  type,
+  number = 10
+) => {
+  try {
+    const url = `https://api.worldbank.org/v2/country/all/indicator/${indicatorCode}?date=${year}&format=json&per_page=10000`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Kiểm tra dữ liệu hợp lệ
+    if (!data[1]) {
+      return [];
+    }
+
+    // Lọc quốc gia có dữ liệu và loại bỏ các vùng/khu vực đặc biệt
+    const validData = data[1].filter((item) => {
+      return (
+        item.value !== null &&
+        item.value !== undefined &&
+        item.countryiso3code &&
+        item.countryiso3code !== "" &&
+        validCountryISO3Codes.has(item.countryiso3code)
+      );
+    });
+
+    // Sắp xếp giảm dần theo value
+    let sortedData = [...validData];
+    if (type === "top") {
+      sortedData = validData.sort((a, b) => b.value - a.value);
+    } else {
+      sortedData = validData.sort((a, b) => a.value - b.value);
+    }
+
+    // Trả về top N
+    return sortedData.slice(0, number).map((item) => ({
+      country: item.country.value,
+      code: item.country.id,
+      value: item.value,
+      year: item.date,
+    }));
+  } catch (error) {
+    console.error("Error fetching World Bank data:", error);
+    return [];
+  }
+};
